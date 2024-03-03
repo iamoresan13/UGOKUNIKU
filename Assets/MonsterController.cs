@@ -24,7 +24,7 @@ public class MonsterController : MonoBehaviour
     {
         //Debug.Log("攻撃");
         //生成
-        GameObject attack = Instantiate(AttackPrefab, transform.position + new Vector3(-0.8f, 0, 0), Quaternion.identity);
+        GameObject attack = Instantiate(AttackPrefab, transform.position + new Vector3(-0.5f*Mathf.Sign(transform.localScale.x), 0, 0), Quaternion.identity);
 
         Destroy(attack, 0.1f);
 
@@ -77,6 +77,19 @@ public class MonsterController : MonoBehaviour
             //プレイヤーが近い？
             if (getLength2D(transform.position, Player.transform.position) < 2.2f)
             {
+                //プレイヤーの位置
+                if(transform.position.x > Player.transform.position.x)
+                {
+                    //プレイヤーが左にいた　※画像のscaleサイズに合わせる事
+                    this.transform.localScale = new Vector2(0.7f, 0.7f);
+                }
+                else
+                {
+                    //プレイヤーが右にいた
+                    this.transform.localScale = new Vector2(-0.7f, 0.7f);
+                }
+
+
                 //アニメーション
                 myAnimator.SetTrigger("Attack");
             }

@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MeetController : MonoBehaviour
 {
     //アニメーションするためのコンポーネントを入れる
-    //Animator myAnimator;
+    Animator myAnimator;
 
     //移動させるコンポーネントを入れる
     Rigidbody2D myRigidbody;
@@ -22,14 +23,18 @@ public class MeetController : MonoBehaviour
     //HP追加
     private int HP = 5;
 
+    //HpUI追加
+    public GameObject HpUI;
+
+    //GameOver判定
+    private bool isGameOver = false;
    
 
     // Start is called before the first frame update
     void Start()
     {
         // アニメータのコンポーネントを取得する
-
-        //this.myAnimator = GetComponent<Animator>();
+        this.myAnimator = GetComponent<Animator>();
 
         // Rigidbody2Dのコンポーネントを取得する
         this.myRigidbody = GetComponent<Rigidbody2D>();
@@ -38,50 +43,81 @@ public class MeetController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //移動
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+        
+     　//プレイ中
+        if(isGameOver == false)
         {
-            //左へ向く
-            this.transform.localScale = new Vector2(-1.0f, 1.0f);
-
-            //ジャンプ
-            if (Input.GetKey(KeyCode.Space) && isGround)
+            //移動
+            if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
             {
-                //横移動＋ジャンプ
-                this.myRigidbody.velocity = new Vector2(-velocity, jumppower);
+                //左へ向く
+                this.transform.localScale = new Vector2(-1.0f, 1.0f);
+
+                //ジャンプ
+                if (Input.GetKey(KeyCode.Space) && isGround)
+                {
+                    //横移動＋ジャンプ
+                    this.myRigidbody.velocity = new Vector2(-velocity, jumppower);
+                }
+                else
+                {
+                    //走る
+                    myAnimator.SetBool("Run", true);
+
+                    //横移動
+                    this.myRigidbody.velocity = new Vector2(-velocity, this.myRigidbody.velocity.y);
+                }
+            }
+            else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+            {
+                //右へ向く
+                this.transform.localScale = new Vector2(1.0f, 1.0f);
+
+                //ジャンプ
+                if (Input.GetKey(KeyCode.Space) && isGround)
+                {
+                    //横移動＋ジャンプ
+                    this.myRigidbody.velocity = new Vector2(velocity, jumppower);
+                }
+                else
+                {
+                    //走る
+                    myAnimator.SetBool("Run", true);
+                    //横移動
+                    this.myRigidbody.velocity = new Vector2(velocity, this.myRigidbody.velocity.y);
+                }
+            }
+            else
+            {   //停止
+                myAnimator.SetBool("Run", false);
+                //ジャンプ
+                if (Input.GetKey(KeyCode.Space) && isGround)
+                {
+                    //垂直ジャンプ
+                    this.myRigidbody.velocity = new Vector2(0.0f, jumppower);
+                }
+            }
+
+            //Jump制御
+            if (isGround)
+            {
+                myAnimator.SetInteger("Jump", 0);
             }
             else
             {
-                //横移動
-                this.myRigidbody.velocity = new Vector2(-velocity, this.myRigidbody.velocity.y);
+                if (myRigidbody.velocity.y > 0)
+                {
+                    myAnimator.SetInteger("Jump", 1);
+                }
+                else
+                {
+                    myAnimator.SetInteger("Jump", -1);
+                }
             }
         }
-        else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-        {
-            //右へ向く
-            this.transform.localScale = new Vector2(1.0f, 1.0f);
 
-            //ジャンプ
-            if (Input.GetKey(KeyCode.Space) && isGround)
-            {
-                //横移動＋ジャンプ
-                this.myRigidbody.velocity = new Vector2(velocity, jumppower);
-            }
-            else
-            {
-                //横移動
-                this.myRigidbody.velocity = new Vector2(velocity, this.myRigidbody.velocity.y);
-            }
-        }
-        else
-        {
-            //ジャンプ
-            if (Input.GetKey(KeyCode.Space) && isGround)
-            {
-                //垂直ジャンプ
-                this.myRigidbody.velocity = new Vector2(0.0f, jumppower);
-            }
-        }
+       
+
     }
 
     //衝突（トリガー）
@@ -98,6 +134,23 @@ public class MeetController : MonoBehaviour
         {
             Debug.Log("ダメージ");
             HP--;
+
+            float scale = HP / 5.0f;
+
+            if(scale < 0)
+            {
+                scale = 0;
+            }
+
+            HpUI.GetComponent<RectTransform>().localScale = new Vector3(scale, 1, 1);
+
+            //死亡
+            if(HP <= 0)
+            {
+                myAnimator.SetBool("Death", true);
+                isGameOver = true;
+            }
+
             //ノックバック
             myRigidbody.AddForce(new Vector2(-10f, 0), ForceMode2D.Impulse);
 
