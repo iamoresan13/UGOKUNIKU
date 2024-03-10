@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class MeetController : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class MeetController : MonoBehaviour
     private float velocity = 4.0f;
 
     //ジャンプ量
-    private float jumppower = 24.0f;
+    private float jumppower = 14.0f;
 
     //地面に接触
     private bool isGround = false;
@@ -28,6 +29,10 @@ public class MeetController : MonoBehaviour
 
     //GameOver判定
     private bool isGameOver = false;
+
+    //GameObver またはＣＬＥＡＲ用
+    public GameObject textUI;
+
    
 
     // Start is called before the first frame update
@@ -116,13 +121,40 @@ public class MeetController : MonoBehaviour
             }
         }
 
-       
+        //落下GameOver
+        if(transform.position.y < -6.0f)
+        {
+            isGameOver = true;
+            textUI.GetComponent<Text>().text = "Game Over";
+        }
+
+        //ゲームオーバーした EnterキーはReturn
+        if (isGameOver)
+        {
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                //シーンを読み込む
+                SceneManager.LoadScene("SampleScene");
+
+            }
+          }
+
 
     }
 
     //衝突（トリガー）
     void OnTriggerEnter2D(Collider2D other)
     {
+        //ゴール
+        if (other.gameObject.tag == "GoalTag")
+        {
+            isGameOver = true;
+            textUI.GetComponent<Text>().text = "Clear";
+
+            //停止
+            myAnimator.SetBool("Run", false);
+        }
+
         //地面 ※床が多いので床は全て Untaggedで実装する。
         if (other.gameObject.tag == "Untagged")
         {
@@ -133,6 +165,10 @@ public class MeetController : MonoBehaviour
         if (other.gameObject.tag == "MonsterTag")
         {
             Debug.Log("ダメージ");
+
+            //Damageのアニメ―ション
+            myAnimator.SetTrigger("Damage");
+
             HP--;
 
             float scale = HP / 5.0f;
@@ -149,10 +185,21 @@ public class MeetController : MonoBehaviour
             {
                 myAnimator.SetBool("Death", true);
                 isGameOver = true;
+                textUI.GetComponent<Text>().text = "Game Over";
+            }
+            //衝突した方向
+            if(other.transform.position.x > transform.position.x)
+            {
+                //ノックバック左方向
+                myRigidbody.AddForce(new Vector2(-10f, 0), ForceMode2D.Impulse);
+            }
+            else
+            {
+                //ノックバック右方向
+                myRigidbody.AddForce(new Vector2(10f, 0), ForceMode2D.Impulse);
             }
 
-            //ノックバック
-            myRigidbody.AddForce(new Vector2(-10f, 0), ForceMode2D.Impulse);
+           
 
         }
     }

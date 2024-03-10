@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - MonsterTag
+  - GoalTag
   layers:
   - Default
   - TransparentFX
